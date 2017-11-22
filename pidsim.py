@@ -63,6 +63,11 @@ class Flywheel:
     def apply_torque(self, torque):
         self._torques += torque
 
+    def halt(self):
+        self.vel = 0
+        self._impulses = 0
+        self._torques = 0
+        
 class PID:
 
     def __init__(self, p, i, d):
@@ -82,10 +87,11 @@ class PID:
 
 class Motor:
 
-    def __init__(self, flywheel, max_torque, max_speed=math.inf):
+    def __init__(self, flywheel, max_vel, stall_torque, max_volts):
         self.flywheel = flywheel
-        self.max_torque = max_torque  # N*m
-        self.max_speed = max_speed  # rad/s
+        self.max_vel = max_vel
+        self.stall_torque = stall_torque
+        self.max_volts = max_volts
         self._power = 0
 
     @property
@@ -93,50 +99,59 @@ class Motor:
         return self._power
     
     @power.setter
-    def power(self, power):
-        self._power = max(min(1, power), -1)
+    def power(self, val):
+        self._power = max(min(1, val), -1)
 
     @property
     def torque(self):
-        return self.power * self.max_torque
+        return (self.power - self.flywheel.vel / self.max_vel) * self.stall_torque
+
+    @property
+    def voltage(self):
+        return self.max_volts * self.power
 
     def step(self, dt):
-        impulses = self.flywheel.torque_step(dt)
-        if abs(self.flywheel.vel) < self.max_speed:
-            impulses += self.torque * dt
-        self.flywheel.step(dt, impulses=impulses)
+        self.flywheel.apply_torque(self.torque)
+        self.flywheel.step(dt, friction=False)
 
-DURATION = 100
-STEP = 0.01
+DURATION = 1000
+STEP = 0.1
 CYCLES = int(DURATION / STEP)
 
 def main():
     
-    f = Flywheel(.05, .1, .05)
-    m = Motor(f, 3, 13)
+    f = Flywheel(.1)
+    m = Motor(f, 1000, 1, 5)
     p = PID(1, 0, 0)
     
     frames = [t * STEP for t in range(0, CYCLES)]
+    masses = [m / 50 for m in range(1, 5 * 50)]
     positions = []
     velocities = []
     targets = []
     powers = []
+    torques = []
+    output = []
+    efficiencies = []
 
     target = 10
-    
-    for t in frames:
-        m.power = p.push_error(target - f.vel, STEP)
-        m.step(STEP)
+    m.power = 0.5
 
-        powers.append(m.power)
-        targets.append(target)
-        positions.append(f.pos)
+    for mass in masses:
+        f.halt()
+        f.mass = mass
+        for t in frames:
+            m.step(STEP)
+            '''
+            powers.append(m.power)
+            targets.append(target)
+            positions.append(f.pos)
+            '''
         velocities.append(f.vel)
+        torques.append(m.torque)
+        powers.append(f.vel * m.torque)
 
-    #print(positions)
-
-    plt.title('PID Simulation')
-
+    '''
     gs = gridspec.GridSpec(2, 1, height_ratios=[2, 1])
 
     axs = plt.subplot(gs[0])
@@ -163,6 +178,24 @@ def main():
     axm.set_yticks(np.arange(-1, 1.1, 0.5))
 
     plt.subplots_adjust(hspace=.0)
+    '''
+    ax = plt.subplot(111)
+    '''
+    ax.plot(masses, velocities, 'b')
+    ax.set_xlabel('mass (kg)')
+    ax.set_ylabel('vel (rad/s) (blue)')
+    ax1 = ax.twinx()
+    ax1.plot(masses, torques, 'r')
+    ax1.set_ylabel('torque (N*m) (red)')
+    '''
+    ax.plot(torques, velocities, 'b')
+    ax.set_ylabel('vel (rad/s) (blue)')
+    ax2 = ax.twinx()
+    #ax2 = plt.subplot(212)
+    ax2.plot(torques, powers, 'r')
+    ax.set_xlabel('torque (N*m)')
+    ax2.set_ylabel('mechanical power (N*m/s) (red)')
+    
     plt.show()
 
 
