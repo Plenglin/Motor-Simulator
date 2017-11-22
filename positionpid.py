@@ -25,11 +25,17 @@ def main():
 
     _impulses = []
 
-    target = 30
-
     print(CYCLES)
     
     for t in frames:
+        if t < 3:
+            target = 0
+        elif t < 10:
+            target = 6
+        elif t < 15:
+            target = -4
+        else:
+            target = 0
         m.power = p.push_error(target - f.pos, STEP)
         #m.power = 1
         torques.append(m.torque)
@@ -43,22 +49,26 @@ def main():
     
     gs = gridspec.GridSpec(2, 1, height_ratios=[2, 1])
 
+    plt.subplots_adjust(hspace=0.4)
     axs = plt.subplot(gs[0])
+    plt.title('PID Test')
+    
     axm = plt.subplot(gs[1])
+    plt.title('Motor')
 
     axs.grid(color='0.75', linewidth=1)
     axm.grid(color='0.75', linewidth=1)
     lines, linet = axs.plot(frames, positions, 'r', frames, targets, 'b--')
-    axs.set_ylabel('pos (rad)')
+    axs.set_ylabel('position (rad)')
     axs.set_xlabel('time (s)')
 
     axv = axs.twinx()
     linev, = axv.plot(frames, velocities, 'g-.')
-    axv.set_ylabel('vel (rad/s)')
+    axv.set_ylabel('velocity (rad/s)')
 
-    axs.legend((lines, linet, linev), ('pos', 'targ', 'vel'), loc='lower left')
+    axs.legend((lines, linet, linev), ('position', 'target (rad)', 'velocity'), loc='lower right')
 
-    axm.plot(frames, powers, 'b')
+    linem, = axm.plot(frames, powers, 'b')
     axm.set_ylim([-1.1, 1.1])
     axm.set_xlabel('time (s)')
     axm.set_ylabel('motor power')
@@ -66,7 +76,9 @@ def main():
 
     axt = axm.twinx()
     axt.set_ylabel('torque (N*m)')
-    axt.plot(frames, torques, 'g')
+    linetor, = axt.plot(frames, torques, 'g')
+
+    axm.legend((linem, linetor), ('power', 'torque'), loc='lower right')
 
     plt.show()
     
