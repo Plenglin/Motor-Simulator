@@ -57,18 +57,19 @@ class Flywheel:
         
 class PID:
 
-    def __init__(self, p, i, d):
+    def __init__(self, p, i, d, f=0):
         self.p = p
         self.i = i
         self.d = d
+        self.f = f
 
         self._sum = 0
         self._last = 0
 
-    def push_error(self, error, dt):
+    def push_error(self, error, dt, feed=0):
         de = (error - self._last) / dt
         self._sum += error * dt
-        out = self.p * error + self.i * self._sum + self.d * de
+        out = self.p * error + self.i * self._sum + self.d * de + self.f * feed
         self._last = error
         return out
 
