@@ -1,9 +1,12 @@
+from collections import namedtuple
 import math
 
 import numpy as np
 
 EPSILON = 0.001
 
+FlywheelState = namedtuple('FlywheelState', ('pos', 'vel', 'acc'))
+        
 class Flywheel:
 
     def __init__(self, mass, stat_fric=0, kin_fric=0):
@@ -14,6 +17,7 @@ class Flywheel:
         self.kin_fric = kin_fric  # N
         self._impulses = 0  # n*m/s
         self._torques = 0  # n*m
+        self.history = []
 
     @property
     def ang_momentum(self):
@@ -39,6 +43,8 @@ class Flywheel:
 
         if not self.is_moving:
             self.vel = 0
+
+        self.history.append(FlywheelState(self.pos, self.vel, acc))
             
     @property
     def is_moving(self):
@@ -73,6 +79,8 @@ class PID:
         self._last = error
         return out
 
+MotorState = namedtuple('MotorState', ('power', 'torque'))
+
 class Motor:
 
     def __init__(self, flywheel, max_vel, stall_torque, min_power=0):
@@ -81,6 +89,7 @@ class Motor:
         self.stall_torque = stall_torque
         self._power = 0
         self.min_power = min_power
+        self.history = []
 
     @property
     def power(self):
@@ -98,5 +107,6 @@ class Motor:
         return np.sign(self.power) * mag
 
     def step(self, dt):
+        self.history.append(MotorState(self.power, self.torque))
         self.flywheel.apply_torque(self.torque)
         
