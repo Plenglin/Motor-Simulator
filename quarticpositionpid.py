@@ -13,7 +13,7 @@ def main():
 
     f = Flywheel(0.01, 0, kin_fric=0.01)
     m = Motor(f, 11, .65)
-    p = PID(0.3, 0.00, 0.2, 0.1)
+    p = PID(0.6, 1, 0.8, 0.15)
     
     frames = [t * STEP for t in range(0, CYCLES)]
     masses = [m / 50 for m in range(1, 5 * 50)]
