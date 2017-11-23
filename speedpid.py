@@ -51,7 +51,7 @@ def main():
     axv = plt.subplot(gs[0])
     plt.title(f'AM-0255 CIM Velocity PID Test (P={p.p}, I={p.i}, D={p.d})')
     
-    axm = plt.subplot(gs[1])
+    axm = plt.subplot(gs[1], sharex=axv)
     plt.title('Motor')
 
     axv.grid(color='0.75', linewidth=1)

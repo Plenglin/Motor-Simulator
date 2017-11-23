@@ -53,7 +53,7 @@ def main():
     axs = plt.subplot(gs[0])
     plt.title(f'NeveRest 60 Position PID Test (P={p.p}, I={p.i}, D={p.d})')
 
-    axm = plt.subplot(gs[1])
+    axm = plt.subplot(gs[1], sharex=axs)
     plt.title('Motor')
 
     axs.grid(color='0.75', linewidth=1)
