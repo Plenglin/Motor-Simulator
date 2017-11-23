@@ -12,12 +12,11 @@ CYCLES = int(DURATION / STEP) + 1
 def main():
 
     f = Flywheel(0.01, 0, kin_fric=0.01)
-    m = Motor(f, 11, .65)
-    p = PID(0.3, 0.00, 0.2)
+    m = Motor(f, 556, 2.42)
+    p = PID(1, 0, 0)
     
     frames = [t * STEP for t in range(0, CYCLES)]
     masses = [m / 50 for m in range(1, 5 * 50)]
-    positions = []
     velocities = []
     targets = []
     powers = []
@@ -30,19 +29,18 @@ def main():
     for t in frames:
         if t < 3:
             target = 0
-        elif t < 10:
-            target = 6
+        elif t < 7:
+            target = 300
         elif t < 15:
-            target = -4
+            target = -200
         else:
             target = 0
-        m.power = p.push_error(target - f.pos, STEP)
+        m.power = p.push_error(target - f.vel, STEP)
         #m.power = 1
         torques.append(m.torque)
         m.step(STEP)
         _impulses.append(f._torques)
         f.step(STEP)
-        positions.append(f.pos)
         velocities.append(f.vel)
         powers.append(m.power)
         targets.append(target)
@@ -50,23 +48,19 @@ def main():
     gs = gridspec.GridSpec(2, 1, height_ratios=[2, 1])
 
     plt.subplots_adjust(hspace=0.4)
-    axs = plt.subplot(gs[0])
-    plt.title(f'NeveRest 60 Position PID Test (P={p.p}, I={p.i}, D={p.d})')
-
+    axv = plt.subplot(gs[0])
+    plt.title(f'AM-0255 CIM Velocity PID Test (P={p.p}, I={p.i}, D={p.d})')
+    
     axm = plt.subplot(gs[1])
     plt.title('Motor')
 
-    axs.grid(color='0.75', linewidth=1)
+    axv.grid(color='0.75', linewidth=1)
     axm.grid(color='0.75', linewidth=1)
-    lines, linet = axs.plot(frames, positions, 'r', frames, targets, 'b--')
-    axs.set_ylabel('position (rad)')
-    axs.set_xlabel('time (s)')
-
-    axv = axs.twinx()
-    linev, = axv.plot(frames, velocities, 'g-.')
+    linev, linet = axv.plot(frames, velocities, 'r', frames, targets, 'b--')
+    axv.set_xlabel('time (s)')
     axv.set_ylabel('velocity (rad/s)')
 
-    axs.legend((lines, linet, linev), ('position', 'target (rad)', 'velocity'), loc='lower right')
+    axv.legend((linet, linev), ('target (rad)', 'velocity'), loc='lower right')
 
     linem, = axm.plot(frames, powers, 'b')
     axm.set_ylim([-1.1, 1.1])
