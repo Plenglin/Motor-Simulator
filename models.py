@@ -75,12 +75,12 @@ class PID:
 
 class Motor:
 
-    def __init__(self, flywheel, max_vel, stall_torque, efficiency=1):
+    def __init__(self, flywheel, max_vel, stall_torque, min_power=0):
         self.flywheel = flywheel
         self.max_vel = max_vel
         self.stall_torque = stall_torque
         self._power = 0
-        self.efficiency = efficiency
+        self.min_power = min_power
 
     @property
     def power(self):
@@ -89,10 +89,12 @@ class Motor:
     @power.setter
     def power(self, val):
         self._power = max(min(1, val), -1)
+        if abs(self._power) < self.min_power:
+            self._power = 0
 
     @property
     def torque(self):
-        mag = max(0, abs(self.power) * self.efficiency - abs(self.flywheel.vel) / self.max_vel) * self.stall_torque
+        mag = max(0, abs(self.power) - abs(self.flywheel.vel) / self.max_vel) * self.stall_torque
         return np.sign(self.power) * mag
 
     def step(self, dt):
