@@ -71,7 +71,7 @@ class Flywheel:
         
 class PID:
 
-    def __init__(self, p, i, d, f=0):
+    def __init__(self, p, i=0, d=0, f=0):
         self.p = p
         self.i = i
         self.d = d

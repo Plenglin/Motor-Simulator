@@ -2,9 +2,10 @@ from abc import ABC, abstractmethod
 
 from models import *
 
+
 class Simulation(ABC):
 
-    def __init__(self, step, duration, control_frequency):
+    def __init__(self, duration, step=0.001, control_frequency=50):
         self.step = step
         self.duration = duration
         self.control_frequency = control_frequency
@@ -21,13 +22,19 @@ class Simulation(ABC):
         if self._frames is None:
             self._frames = [t * self.step for t in range(0, self.cycles)]
         return self._frames
-        
+
+    @property
+    def control_frames(self):
+        if self._frames is None:
+            self._frames = [t * self.step * self.steps_per_control for t in range(0, self.cycles)]
+        return self._frames
+
     @abstractmethod
     def init(self):
         pass
     
     @abstractmethod
-    def loop(self, i, time, dt):
+    def loop(self, i, t, dt):
         pass
 
     def raw_loop(self, i, t, dt):
@@ -55,7 +62,30 @@ class Simulation(ABC):
                 f.step(self.step)
             for m in self.motors:
                 m.step(self.step)
-                
+
+
+class TargetedSimulation(Simulation, ABC):
+
+    def __init__(self, duration, step=0.001, control_frequency=50):
+        super().__init__(duration, step, control_frequency)
+        self.target = 0
+        self.targets = []
+        self.derivative = 0
+        self.derivatives = []
+
+    @abstractmethod
+    def get_target(self, i, t, dt):
+        pass
+
+    def get_derivative(self, i, t, dt):
+        return 0
+
+    def raw_loop(self, i, t, dt):
+        self.target = self.get_target(i, t, dt)
+        self.targets.append(self.target)
+        self.derivative = self.get_derivative(i, t, dt)
+        self.derivatives.append(self.derivative)
+
 
 def main():
     

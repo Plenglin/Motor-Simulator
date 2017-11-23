@@ -83,8 +83,16 @@ def graph_pos_target(title, motor, frames, targets):
     axm.legend((linem, linetor), ('power', 'torque'), loc='lower right')
 
     plt.show()
-    
-def graph_ff_target(title, frames, positions, velocities, targets, derivatives, powers, torques):
+
+
+def graph_ff_target(title, motor, frames, targets, derivatives):
+
+    f = motor.flywheel
+    positions = list(f.positions)
+    velocities = list(f.velocities)
+    powers = list(motor.powers)
+    torques = list(motor.torques)
+
     gs = gridspec.GridSpec(2, 1, height_ratios=[2, 1])
 
     plt.subplots_adjust(hspace=0.4)

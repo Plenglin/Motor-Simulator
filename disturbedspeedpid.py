@@ -4,30 +4,35 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
+import graphutils
+import control
 
 DURATION = 20
 STEP = 0.001
 CYCLES = int(DURATION / STEP) + 1
 
-def main():
 
-    f = Flywheel(0.01, 0, kin_fric=0.05)
-    m = Motor(f, 556, 2.42)
-    p = PID(1, 0, 0)
-    
-    frames = [t * STEP for t in range(0, CYCLES)]
-    masses = [m / 50 for m in range(1, 5 * 50)]
-    velocities = []
-    targets = []
-    powers = []
-    torques = []
-    disturbances = []
+class DisturbedSpeedSimulation(control.TargetedSimulation):
 
-    target = 100
+    def __init__(self):
+        super().__init__(20, control_frequency=100)
+        self.flywheel = Flywheel(0.01, kin_fric=0.01)
+        self.motor = Motor(self.flywheel, 556, 2.42)
+        self.pid = PID(1)
+        self.disturbances = []
 
-    print(CYCLES)
-    
-    for t in frames:
+    def get_target(self, i, t, dt):
+        return 100
+
+    def init(self):
+        self.add_motor(self.motor)
+        self.add_flywheel(self.flywheel)
+
+    def loop(self, i, t, dt):
+        self.motor.power = self.pid.push_error(self.target - self.flywheel.vel, STEP)
+
+    def raw_loop(self, i, t, dt):
+        super().raw_loop(i, t, dt)
         if t < 2:
             disturb = 0
         elif t < 5:
@@ -42,23 +47,27 @@ def main():
             disturb = -4
         else:
             disturb = 0
-        
-        f.apply_torque(disturb)
-        m.power = p.push_error(target - f.vel, STEP)
-        #m.power = 1
-        torques.append(m.torque)
-        m.step(STEP)
-        f.step(STEP)
-        velocities.append(f.vel)
-        powers.append(m.power)
-        targets.append(target)
-        disturbances.append(disturb)
-    
+        self.flywheel.apply_torque(disturb)
+        self.disturbances.append(disturb)
+
+
+def main():
+
+    sim = DisturbedSpeedSimulation()
+    sim.simulate()
+
+    frames = sim.frames
+    velocities = list(sim.flywheel.velocities)
+    targets = sim.targets
+    powers = list(sim.motor.powers)
+    torques = list(sim.motor.torques)
+    disturbances = sim.disturbances
+
     gs = gridspec.GridSpec(2, 1, height_ratios=[2, 1])
 
     plt.subplots_adjust(hspace=0.4)
     axv = plt.subplot(gs[0])
-    plt.title(f'AM-0255 CIM Velocity Disturbance Test (P={p.p}, I={p.i}, D={p.d})')
+    plt.title(f'AM-0255 CIM Velocity Disturbance Test (P={sim.pid.p}, I={sim.pid.i}, D={sim.pid.d})')
     
     axm = plt.subplot(gs[1], sharex=axv)
     plt.title('Motor')
