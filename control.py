@@ -30,6 +30,9 @@ class Simulation(ABC):
     def loop(self, i, time, dt):
         pass
 
+    def raw_loop(self, i, t, dt):
+        pass
+
     def add_motor(self, motor):
         assert isinstance(motor, Motor), 'not a motor'
         self.motors.append(motor)
@@ -45,8 +48,9 @@ class Simulation(ABC):
         self.motors = []
         self.init()
         for i, t in enumerate(self.frames):
+            self.raw_loop(i, t, self.step)
             if i % self.steps_per_control == 0:
-                self.loop(i, t, self.step)
+                self.loop(i / self.steps_per_control, t, self.step * self.steps_per_control)
             for f in self.flywheels:
                 f.step(self.step)
             for m in self.motors:

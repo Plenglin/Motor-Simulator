@@ -5,8 +5,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 
-def graph_vel_target(title, frames, velocities, targets, powers, torques):
+def graph_vel_target(title, motor, frames, targets):
     gs = gridspec.GridSpec(2, 1, height_ratios=[2, 1])
+
+    f = motor.flywheel
+    velocities = f.velocities
+    powers = motor.powers
+    torques = motor.torques
 
     plt.subplots_adjust(hspace=0.4)
     axv = plt.subplot(gs[0])
@@ -37,8 +42,14 @@ def graph_vel_target(title, frames, velocities, targets, powers, torques):
 
     plt.show()
 
-def graph_pos_target(title, frames, positions, velocities, targets, powers, torques):
+def graph_pos_target(title, motor, frames, targets):
     gs = gridspec.GridSpec(2, 1, height_ratios=[2, 1])
+
+    f = motor.flywheel
+    powers = list(motor.powers)
+    torques = list(motor.torques)
+    positions = list(f.positions)
+    velocities = list(f.velocities)
 
     plt.subplots_adjust(hspace=0.4)
     axs = plt.subplot(gs[0])

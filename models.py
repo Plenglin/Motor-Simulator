@@ -50,6 +50,14 @@ class Flywheel:
     def is_moving(self):
         return abs(self.vel) > EPSILON
 
+    @property
+    def velocities(self):
+        return (s.vel for s in self.history)
+
+    @property
+    def positions(self):
+        return (s.pos for s in self.history)
+
     def apply_impulse(self, impulse):
         self._impulses += impulse
 
@@ -83,12 +91,11 @@ MotorState = namedtuple('MotorState', ('power', 'torque'))
 
 class Motor:
 
-    def __init__(self, flywheel, max_vel, stall_torque, min_power=0):
+    def __init__(self, flywheel, max_vel, stall_torque):
         self.flywheel = flywheel
         self.max_vel = max_vel
         self.stall_torque = stall_torque
         self._power = 0
-        self.min_power = min_power
         self.history = []
 
     @property
@@ -98,13 +105,19 @@ class Motor:
     @power.setter
     def power(self, val):
         self._power = max(min(1, val), -1)
-        if abs(self._power) < self.min_power:
-            self._power = 0
 
     @property
     def torque(self):
         mag = max(0, abs(self.power) - abs(self.flywheel.vel) / self.max_vel) * self.stall_torque
         return np.sign(self.power) * mag
+
+    @property
+    def powers(self):
+        return (s.power for s in self.history)
+
+    @property
+    def torques(self):
+        return (s.torque for s in self.history)
 
     def step(self, dt):
         self.history.append(MotorState(self.power, self.torque))
