@@ -37,8 +37,8 @@ class PositionSimulation(control.Simulation):
     def loop(self, i, t, dt):
         self.motor.power = self.pid.push_error(self.target - self.flywheel.pos, dt)
 
-def main():
 
+def main():
     sim = PositionSimulation()
     sim.simulate()
 
