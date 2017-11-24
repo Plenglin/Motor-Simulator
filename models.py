@@ -6,17 +6,18 @@ import numpy as np
 EPSILON = 0.001
 
 FlywheelState = namedtuple('FlywheelState', ('pos', 'vel', 'acc'))
-        
+
+
 class Flywheel:
 
-    def __init__(self, mass, stat_fric=0, kin_fric=0):
+    def __init__(self, mass, kin_fric=0, stat_fric=0):
         self.mass = mass  # kg
         self.pos = 0  # rad
         self.vel = 0  # rad/s
-        self.stat_fric = stat_fric  # N
-        self.kin_fric = kin_fric  # N
-        self._impulses = 0  # n*m/s
-        self._torques = 0  # n*m
+        self.kin_fric = kin_fric  # N*m
+        self.stat_fric = stat_fric  # N*m
+        self._impulses = 0  # N*m*s
+        self._torques = 0  # N*m
         self.history = []
 
     @property
@@ -27,6 +28,8 @@ class Flywheel:
         if self.is_moving:
             friction = -np.sign(self.vel) * self.kin_fric
             self.apply_torque(friction)
+        elif abs(self._torques) < self.stat_fric:
+            self._torques = 0
 
         impulse = self._impulses + self._torques * dt
 
@@ -68,7 +71,8 @@ class Flywheel:
         self.vel = 0
         self._impulses = 0
         self._torques = 0
-        
+
+
 class PID:
 
     def __init__(self, p, i=0, d=0, f=0):
@@ -88,6 +92,7 @@ class PID:
         return out
 
 MotorState = namedtuple('MotorState', ('power', 'torque'))
+
 
 class Motor:
 

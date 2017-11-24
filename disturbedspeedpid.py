@@ -1,11 +1,9 @@
-from models import *
-
-import numpy as np
-
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib import gridspec
-import graphutils
+
 import control
+from models import *
 
 DURATION = 20
 STEP = 0.001
@@ -16,7 +14,7 @@ class DisturbedSpeedSimulation(control.TargetedSimulation):
 
     def __init__(self):
         super().__init__(20, control_frequency=100)
-        self.flywheel = Flywheel(0.01, kin_fric=0.01)
+        self.flywheel = Flywheel(0.01, kin_fric=0.01, stat_fric=0.02)
         self.motor = Motor(self.flywheel, 556, 2.42)
         self.pid = PID(1)
         self.disturbances = []

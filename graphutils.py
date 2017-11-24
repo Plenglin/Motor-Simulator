@@ -54,6 +54,43 @@ def graph_vel_target(title, motor, frames, targets):
 
     plt.show()
 
+
+def graph_vel(title, motor, frames):
+    gs = gridspec.GridSpec(2, 1, height_ratios=[2, 1])
+
+    f = motor.flywheel
+    velocities = list(f.velocities)
+    powers = list(motor.powers)
+    torques = list(motor.torques)
+
+    plt.subplots_adjust(hspace=0.4)
+    axv = plt.subplot(gs[0])
+    plt.title(title)
+
+    axm = plt.subplot(gs[1], sharex=axv)
+    plt.title('Motor')
+
+    axv.grid(color='0.75', linewidth=1)
+    axm.grid(color='0.75', linewidth=1)
+    linev = axv.plot(frames, velocities, 'r')
+    axv.set_xlabel('time (s)')
+    axv.set_ylabel('velocity (rad/s)')
+
+    linem, = axm.plot(frames, powers, 'b')
+    axm.set_ylim([-1.1, 1.1])
+    axm.set_xlabel('time (s)')
+    axm.set_ylabel('motor power')
+    axm.set_yticks(np.arange(-1, 1.1, 0.5))
+
+    axt = axm.twinx()
+    axt.set_ylabel('torque (N*m)')
+    linetor, = axt.plot(frames, torques, 'g')
+
+    axm.legend((linem, linetor), ('power', 'torque'), loc='lower right')
+
+    plt.show()
+
+
 def graph_pos_target(title, motor, frames, targets):
     gs = gridspec.GridSpec(2, 1, height_ratios=[2, 1])
 
