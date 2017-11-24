@@ -12,14 +12,14 @@ class FrictionTest(control.Simulation):
     def __init__(self):
         super().__init__(20)
         self.flywheel = Flywheel(0.01, kin_fric=KINETIC_FRIC, stat_fric=STATIC_FRIC)
-        self.motor = Motor(self.flywheel, 11, .65)
+        self.motor = Motor(self.flywheel, 11, .65, deadzone=0.25)
 
     def init(self):
         self.add_flywheel(self.flywheel)
         self.add_motor(self.motor)
 
     def loop(self, i, t, dt):
-        self.motor.power = t / 10
+        self.motor.set_power_adj(t / 10)
 
 
 if __name__ == '__main__':

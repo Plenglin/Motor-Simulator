@@ -96,10 +96,12 @@ MotorState = namedtuple('MotorState', ('power', 'torque'))
 
 class Motor:
 
-    def __init__(self, flywheel, max_vel, stall_torque):
+    def __init__(self, flywheel, max_vel, stall_torque, deadzone=0):
         self.flywheel = flywheel
         self.max_vel = max_vel
         self.stall_torque = stall_torque
+        self.deadzone = deadzone
+
         self._power = 0
         self.history = []
 
@@ -111,9 +113,16 @@ class Motor:
     def power(self, val):
         self._power = max(min(1, val), -1)
 
+    def set_power_adj(self, val):
+        if abs(val) < EPSILON:
+            self.power = 0
+        else:
+            self.power = math.copysign((1 - self.deadzone) * (abs(val) - 1) + 1, val)
+
     @property
     def torque(self):
-        mag = max(0, abs(self.power) - abs(self.flywheel.vel) / self.max_vel) * self.stall_torque
+        power = (1 - self.deadzone) * (abs(self.power) - 1) + 1
+        mag = max(0, abs(power) - abs(self.flywheel.vel) / self.max_vel) * self.stall_torque
         return np.sign(self.power) * mag
 
     @property

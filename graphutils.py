@@ -150,8 +150,9 @@ def graph_ff_target(title, motor, frames, targets, derivatives):
     axs = plt.subplot(gs[0])
     plt.title(title)
 
-    axm = plt.subplot(gs[1], sharex=axs)
+    axt = plt.subplot(gs[1], sharex=axs)
     plt.title('Motor')
+    axm = axt.twinx()
 
     axs.grid(color='0.75', linewidth=1)
     axm.grid(color='0.75', linewidth=1)
@@ -171,7 +172,6 @@ def graph_ff_target(title, motor, frames, targets, derivatives):
     axm.set_ylabel('motor power')
     axm.set_yticks(np.arange(-1, 1.1, 0.5))
 
-    axt = axm.twinx()
     axt.set_ylabel('torque (N*m)')
     linetor, = axt.plot(frames, torques, 'g')
 

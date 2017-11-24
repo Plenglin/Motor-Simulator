@@ -12,6 +12,7 @@ DURATION = 20
 STEP = 0.01
 CYCLES = int(DURATION / STEP) + 1
 
+
 def main():
 
     f = Flywheel(0.01, 0, kin_fric=0.05)
