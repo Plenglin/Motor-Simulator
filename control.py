@@ -66,7 +66,7 @@ class Simulation(ABC):
 
 class TargetedSimulation(Simulation, ABC):
 
-    def __init__(self, duration, step=0.001, control_frequency=50):
+    def __init__(self, duration, step=0.001, control_frequency=100):
         super().__init__(duration, step, control_frequency)
         self.target = 0
         self.targets = []

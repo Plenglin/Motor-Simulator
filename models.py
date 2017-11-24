@@ -21,7 +21,7 @@ class Flywheel:
 
     @property
     def ang_momentum(self):
-        return self.vel * mass
+        return self.vel * self.mass
 
     def torque_step(self, dt):
         if self.is_moving:
